@@ -1,8 +1,10 @@
 # SmartZone Exporter
 
+Forked from [ddericco/smartzone_exporter](https://github.com/ddericco/smartzone_exporter)
+
 Ruckus SmartZone exporter for https://prometheus.io, written in Python.
 
-This exporter is adapted in part from examples by [Robust Perception](https://www.robustperception.io/writing-a-jenkins-exporter-in-python/) and [Loovoo](https://github.com/lovoo/jenkins_exporter), utilizing the [Ruckus SmartZone API](http://docs.ruckuswireless.com/vscg-carrier/vsz-h-public-api-reference-guide-3-5.html#system-system-summary-get) to query for metrics.
+This exporter is adapted in part from examples by [Robust Perception](https://www.robustperception.io/writing-a-jenkins-exporter-in-python/) and [Loovoo](https://github.com/lovoo/jenkins_exporter), utilizing the [Ruckus SmartZone API](https://docs.ruckuswireless.com/smartzone/6.1.1/switch-management-public-api-reference-guide-611.html) to query for metrics.
 
 ## Background
 The goal of this exporter is twofold: provide a faster and more reliable alternative to SNMP for querying metrics from a Ruckus SmartZone controller, while also providing an opportunity to brush up on my (admittedly quite rusty) Python skills. Most of the code will be heavily commented with notes that would be obvious to more experienced developers; perhaps it will be useful for other contributors or developers. There will certainly be additional efficiencies that can be gained, more 'Pythonic' ways of doing certain tasks, or other changes that make this exporter better; contributions are always welcome!
@@ -36,7 +38,7 @@ required named arguments:
 ```
 ### Example
 ```
-python smartzone_exporter.py -u jimmy -p jangles -t https://ruckus.jjangles.com:8443
+python smartzone_exporter.py -u apouser -p apipass -t https://smartzone.example.com:8443
 ```
 
 ## Requirements
@@ -44,11 +46,11 @@ This exporter has been tested on the following versions:
 
 | Model | Version     |
 |-------|-------------|
-| vSZ-H | 3.5.0.0.808 |
+| vSZ-H | 6.1.1.0.959 |
 
 ## Installation
 ```
-git clone https://github.com/ddericco/smartzone_exporter.git
+git clone https://github.com/aleckzts/smartzone_exporter.git
 cd smartzone_exporter
 pipenv install
 ```
