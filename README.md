@@ -4,7 +4,7 @@ Forked from [ddericco/smartzone_exporter](https://github.com/ddericco/smartzone_
 
 Ruckus SmartZone exporter for https://prometheus.io, written in Python.
 
-This exporter is adapted in part from examples by [Robust Perception](https://www.robustperception.io/writing-a-jenkins-exporter-in-python/) and [Loovoo](https://github.com/lovoo/jenkins_exporter), utilizing the [Ruckus SmartZone API](https://docs.ruckuswireless.com/smartzone/6.1.1/switch-management-public-api-reference-guide-611.html) to query for metrics.
+This exporter is adapted in part from examples by [Robust Perception](https://www.robustperception.io/writing-a-jenkins-exporter-in-python/) and [Loovoo](https://github.com/lovoo/jenkins_exporter), utilizing the [Ruckus SmartZone API](https://docs.ruckuswireless.com/smartzone/6.1.1/vszh-public-api-reference-guide-611.html) to query for metrics.
 
 ## Background
 The goal of this exporter is twofold: provide a faster and more reliable alternative to SNMP for querying metrics from a Ruckus SmartZone controller, while also providing an opportunity to brush up on my (admittedly quite rusty) Python skills. Most of the code will be heavily commented with notes that would be obvious to more experienced developers; perhaps it will be useful for other contributors or developers. There will certainly be additional efficiencies that can be gained, more 'Pythonic' ways of doing certain tasks, or other changes that make this exporter better; contributions are always welcome!
