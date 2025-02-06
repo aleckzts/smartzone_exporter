@@ -1,0 +1,4 @@
+services:
+  smartzone_exporter:
+    build: .
+    image: smartzone_exporter
