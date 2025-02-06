@@ -7,4 +7,4 @@ services:
       - VSZ_TARGET=${VSZ_TARGET}
       - API_USER=${API_USER}
       - API_PASSWORD=${API_PASSWORD}
-      - EXTRA_PARAM="--insecure"
+      - EXTRA_PARAM=--insecure
