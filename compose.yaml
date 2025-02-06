@@ -2,3 +2,9 @@ services:
   smartzone_exporter:
     build: .
     image: smartzone_exporter
+    environment:
+      - TZ=America/Sao_Paulo
+      - VSV_TARGET=${VSV_TARGET}
+      - API_USER=${API_USER}
+      - API_PASSWORD=${API_PASSWORD}
+      - EXTRA_PARAM="--insecure"
