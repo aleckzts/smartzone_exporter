@@ -1,8 +1,11 @@
-FROM ubuntu:20.04
+# using ubuntu LTS version
+FROM ubuntu:20.04 AS builder-image
 
-WORKDIR /smartzone
+# avoid stuck build due to user prompt
+ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y python3 pipenv
+RUN apt-get update && apt-get install -y python3.9 python3-wheel pipenv && \
+	apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
