@@ -13,4 +13,6 @@ COPY . .
 
 RUN pip3 install -r requirements.txt
 
-CMD ["python3 /smartzone/smartzone_exporter.py"]
+EXPOSE 9345
+
+CMD ["/usr/bin/python3 /smartzone/smartzone_exporter.py -u $API_USER -p $API_PASSWORD -t $VSZ_TARGET $EXTRA_PARAM"]
