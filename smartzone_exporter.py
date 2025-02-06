@@ -17,6 +17,8 @@ import argparse
 from prometheus_client import start_http_server, Summary
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
 
+# Compatible Ruckus API version
+apiVersion = 'v11_1'
 
 # Create SmartZoneCollector as a class - in Python3, classes inherit object as a base class
 # Only need to specify for compatibility or in Python2
@@ -33,8 +35,10 @@ class SmartZoneCollector():
         self._password = password
         self._insecure = insecure
 
-        self._headers = None
+        self._compatible = False
+        self._headers = {'Content-Type': 'application/json;charset=UTF-8'}
         self._statuses = None
+        self._service_ticket = ''
 
         # With the exception of uptime, all of these metrics are strings
         # Following the example of node_exporter, we'll set these string metrics with a default value of 1
@@ -47,25 +51,22 @@ class SmartZoneCollector():
         # Session object used to keep persistent cookies and connection pooling
         s = requests.Session()
 
-        # Set `verify` variable to enable or disable SSL checking
-        # Use string method format methods to create new string with inserted value (in this case, the URL)
-        s.get('{}/wsg/api/public/v5_0/session'.format(self._target), verify=self._insecure)
+        # Verify version compatibility
+        r = s.get('{}/wsg/api/public/apiInfo'.format(self._target), verify=self._insecure)
+        supported_versions = r.json().get('apiSupportVersions')
+        self._compatible = any(apiVersion in x  for x in supported_versions)
 
         # Define URL arguments as a dictionary of strings 'payload'
         payload = {'username': self._user, 'password': self._password}
 
         # Call the payload using the json parameter
-        r = s.post('{}/wsg/api/public/v5_0/session'.format(self._target), json=payload, verify=self._insecure)
+        r = s.post('{}/wsg/api/public/{}/serviceTicket'.format(self._target, apiVersion), json=payload, verify=self._insecure)
 
         # Raise bad requests
         r.raise_for_status()
 
         # Create a dictionary from the cookie name-value pair, then get the value based on the JSESSIONID key
-        session_id = r.cookies.get_dict().get('JSESSIONID')
-
-        # Add HTTP headers for all requests EXCEPT logon API
-        # Integrate the session ID into the header
-        self._headers = {'Content-Type': 'application/json;charset=UTF-8', 'Cookie': 'JSESSIONID={}'.format(session_id)}
+        self._service_ticket = r.json().get('serviceTicket')
 
 
     def get_metrics(self, metrics, api_path):
@@ -74,12 +75,11 @@ class SmartZoneCollector():
         if 'query' in api_path:
             # For APs, use POST and API query to reduce number of requests and improve performance
             # To-do: set dynamic AP limit based on SmartZone inventory
-            raw = {'page': 0, 'start': 0, 'limit': 1000}
-            r = requests.post('{}/wsg/api/public/v5_0/{}'.format(self._target, api_path), json=raw, headers=self._headers, verify=self._insecure)
+            raw = {'page': 1, 'limit': 1000}
+            r = requests.post('{}/wsg/api/public/{}/{}?serviceTicket={}'.format(self._target, apiVersion, api_path, self._service_ticket), json=raw, headers=self._headers, verify=self._insecure)
         else:
-            r = requests.get('{}/wsg/api/public/v5_0/{}'.format(self._target, api_path), headers=self._headers, verify=self._insecure)
-
-        result = json.loads(r.text)
+            r = requests.get('{}/wsg/api/public/{}/{}?serviceTicket={}'.format(self._target, apiVersion, api_path, self._service_ticket), headers=self._headers, verify=self._insecure)
+        result = r.json()
         return result
 
 
@@ -202,7 +202,7 @@ class SmartZoneCollector():
             try:
                 lat = ap.get('deviceGps').split(',')[0]
                 long = ap.get('deviceGps').split(',')[1]
-            except IndexError:
+            except:
                 lat = 'none'
                 long = 'none'
             for s in self._statuses:
