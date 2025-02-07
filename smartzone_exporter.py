@@ -188,7 +188,7 @@ class SmartZoneCollector():
         # - Grab the zone name and zone ID for labeling purposes
         # - Loop through the statuses in statuses
         # - For each status, get the value for the status in each zone and add to the metric
-        for zone in self.get_metrics(zone_metrics, 'system/inventory')['list']:
+        for zone in sorted(self.get_metrics(zone_metrics, 'system/inventory')['list'], key=lambda d: d['zoneName']):
             zone_name = zone['zoneName']
             zone_id = zone['zoneId']
             for s in self._statuses:
@@ -199,7 +199,7 @@ class SmartZoneCollector():
 
         # Get SmartZone AP metrics
         # Generate the metrics based on the values
-        for ap in self.get_metrics(ap_metrics, 'query/ap')['list']:
+        for ap in sorted(self.get_metrics(ap_metrics, 'query/ap')['list'], key=lambda d: d['deviceName']):
             try:
                 lat = ap.get('deviceGps').split(',')[0]
                 long = ap.get('deviceGps').split(',')[1]
