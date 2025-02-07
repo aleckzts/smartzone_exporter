@@ -1,5 +1,6 @@
 # requests used to fetch API data
 import requests
+import os
 
 # Allow for silencing insecure warnings from requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
