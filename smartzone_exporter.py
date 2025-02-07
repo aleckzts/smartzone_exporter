@@ -153,7 +153,7 @@ class SmartZoneCollector():
                 GaugeMetricFamily('smartzone_ap_latency_5g_milliseconds',
                 'AP latency on 5G channels in milliseconds',
                 labels=["zone","ap_group","mac","name","lat","long"]),
-            'latency60G':
+            'latency6G':
                 GaugeMetricFamily('smartzone_ap_latency_6g_milliseconds',
                 'AP latency on 6G channels in milliseconds',
                 labels=["zone","ap_group","mac","name","lat","long"]),
