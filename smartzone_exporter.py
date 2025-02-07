@@ -153,6 +153,10 @@ class SmartZoneCollector():
                 GaugeMetricFamily('smartzone_ap_latency_5g_milliseconds',
                 'AP latency on 5G channels in milliseconds',
                 labels=["zone","ap_group","mac","name","lat","long"]),
+            'latency60G':
+                GaugeMetricFamily('smartzone_ap_latency_6g_milliseconds',
+                'AP latency on 6G channels in milliseconds',
+                labels=["zone","ap_group","mac","name","lat","long"]),
             'numClients24G':
                 GaugeMetricFamily('smartzone_ap_connected_clients_24g',
                 'Number of clients connected to 2.4G channels on this AP',
@@ -160,6 +164,10 @@ class SmartZoneCollector():
             'numClients5G':
                 GaugeMetricFamily('smartzone_ap_connected_clients_5g',
                 'Number of clients connected to 5G channels on this AP',
+                labels=["zone","ap_group","mac","name","lat","long"]),
+            'numClients6G':
+                GaugeMetricFamily('smartzone_ap_connected_clients_6g',
+                'Number of clients connected to 6G channels on this AP',
                 labels=["zone","ap_group","mac","name","lat","long"]),
             'status':
                 GaugeMetricFamily('smartzone_ap_status',
