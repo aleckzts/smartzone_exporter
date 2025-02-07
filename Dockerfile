@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y python3.9 python3-pip && \
 COPY . .
 
 RUN pip3 install -r requirements.txt
+RUN chmod a+x entrypoint.sh
 
 EXPOSE 9345
 
-CMD ["/usr/bin/python3", "/smartzone/smartzone_exporter.py", "-u", "$API_USER", "-p", "$API_PASSWORD", "-t", "$VSZ_TARGET", "$EXTRA_PARAM"]
+ENTRYPOINT [ "/smartzone/entrypoint.sh" ]
