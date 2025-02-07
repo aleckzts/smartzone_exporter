@@ -1,19 +1,19 @@
-# using ubuntu LTS version
-FROM ubuntu:20.04 AS builder-image
+FROM python:3.11-alpine
 
-# avoid stuck build due to user prompt
-ARG DEBIAN_FRONTEND=noninteractive
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-WORKDIR /smartzone
+WORKDIR /app
 
-RUN apt-get update && apt-get install -y python3.9 python3-pip && \
-	apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt /app/requirements.txt
 
-COPY . .
+RUN pip install -r requirements.txt
 
-RUN pip3 install -r requirements.txt
-RUN chmod a+x entrypoint.sh
+COPY smartzone_exporter.py /app/smartzone_exporter.py
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod a+x /entrypoint.sh
 
 EXPOSE 9345
 
-ENTRYPOINT [ "/smartzone/entrypoint.sh" ]
+ENTRYPOINT ["/entrypoint.sh"]

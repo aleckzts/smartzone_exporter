@@ -2,6 +2,8 @@ services:
   smartzone_exporter:
     build: .
     image: smartzone_exporter
+    ports:
+      - 9345:9345
     environment:
       - TZ=America/Sao_Paulo
       - VSZ_TARGET=${VSZ_TARGET}

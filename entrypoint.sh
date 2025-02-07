@@ -1,3 +1,4 @@
 #!/bin/sh
+set -e
 
-/bin/python3 /smartzone/smartzone_exporter.py -u ${API_USER} -p ${API_PASSWORD} -t ${VSZ_TARGET} ${EXTRA_PARAM}
+exec python3 /app/smartzone_exporter.py -t ${VSZ_TARGET} ${EXTRA_PARAM}

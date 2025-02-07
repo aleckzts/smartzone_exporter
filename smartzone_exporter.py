@@ -236,8 +236,6 @@ def parse_args():
     # By default argparse will treat any arguments with flags (- or --) as optional
     # Rather than make these required (considered bad form), we can create another group for required options
     required_named = parser.add_argument_group('required named arguments')
-    required_named.add_argument('-u', '--user', help='SmartZone API user', required=True)
-    required_named.add_argument('-p', '--password', help='SmartZone API password', required=True)
     required_named.add_argument('-t', '--target', help='Target URL and port to access SmartZone, e.g. https://smartzone.example.com:8443', required=True)
 
     # Add store_false action to store true/false values, and set a default of True
@@ -253,7 +251,9 @@ def main():
     try:
         args = parse_args()
         port = int(args.port)
-        REGISTRY.register(SmartZoneCollector(args.target, args.user, args.password, args.insecure))
+        user = os.environ['API_USER']
+        password = os.environ['API_PASSWORD']
+        REGISTRY.register(SmartZoneCollector(args.target, user, password, args.insecure))
         # Start HTTP server on specified port
         start_http_server(port)
         if args.insecure == False:
