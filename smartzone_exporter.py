@@ -38,7 +38,6 @@ class SmartZoneCollector():
 
         self._compatible = False
         self._headers = {'Content-Type': 'application/json;charset=UTF-8'}
-        self._statuses = None
         self._service_ticket = ''
 
         # With the exception of uptime, all of these metrics are strings
@@ -70,9 +69,8 @@ class SmartZoneCollector():
         self._service_ticket = r.json().get('serviceTicket')
 
 
-    def get_metrics(self, metrics, api_path):
+    def get_data(self, api_path):
         # Add the individual URL paths for the API call
-        self._statuses = list(metrics.keys())
         if 'query' in api_path:
             # For APs, use POST and API query to reduce number of requests and improve performance
             # To-do: set dynamic AP limit based on SmartZone inventory
@@ -175,12 +173,23 @@ class SmartZoneCollector():
                 labels=["zone","ap_group","mac","name","status","lat","long"])
                 }
 
+        wlan_metrics = {
+            'alerts':
+                GaugeMetricFamily('smartzone_wlan_alerts',
+                'Number of WLAN alerts',
+                labels=["zone","name","ssid"]),                
+            'clients':
+                GaugeMetricFamily('smartzone_wlan_connected_clients',
+                'Number of clients connected to this SSID',
+                labels=["zone","name","ssid"]),
+        }
+
         self.get_session()
 
         # Get SmartZone controller metrics
-        for c in self.get_metrics(controller_metrics, 'controller')['list']:
+        for c in self.get_data('controller')['list']:
             id = c['id']
-            for s in self._statuses:
+            for s in list(controller_metrics.keys()):
                 if s == 'uptimeInSec':
                      controller_metrics[s].add_metric([id], c.get(s))
                 # Export a dummy value for string-only metrics
@@ -194,12 +203,12 @@ class SmartZoneCollector():
         # Get SmartZone inventory per zone
         # For each zone captured from the query:
         # - Grab the zone name and zone ID for labeling purposes
-        # - Loop through the statuses in statuses
+        # - Loop through the metrics
         # - For each status, get the value for the status in each zone and add to the metric
-        for zone in sorted(self.get_metrics(zone_metrics, 'system/inventory')['list'], key=lambda d: d['zoneName']):
+        for zone in sorted(self.get_data('system/inventory')['list'], key=lambda d: d['zoneName']):
             zone_name = zone['zoneName']
             zone_id = zone['zoneId']
-            for s in self._statuses:
+            for s in list(zone_metrics.keys()):
                 zone_metrics[s].add_metric([zone_name, zone_id], zone.get(s))
 
         for m in zone_metrics.values():
@@ -207,14 +216,14 @@ class SmartZoneCollector():
 
         # Get SmartZone AP metrics
         # Generate the metrics based on the values
-        for ap in sorted(self.get_metrics(ap_metrics, 'query/ap')['list'], key=lambda d: d['deviceName']):
+        for ap in sorted(self.get_data('query/ap')['list'], key=lambda d: d['deviceName']):
             try:
                 lat = ap.get('deviceGps').split(',')[0]
                 long = ap.get('deviceGps').split(',')[1]
             except:
                 lat = 'none'
                 long = 'none'
-            for s in self._statuses:
+            for s in list(ap_metrics.keys()):
                 # 'Status' is a string value only, so we can't export the default value
                 if s == 'status':
                     state_name = ['Online','Offline','Flagged']
@@ -234,6 +243,26 @@ class SmartZoneCollector():
                         ap_metrics[s].add_metric([str(ap['zoneName']), str(ap['apGroupName']), ap['apMac'], ap['deviceName'], lat, long], 0)
 
         for m in ap_metrics.values():
+            yield m
+
+        # for zone in sorted(self.get_data('rkszones')['list'], key=lambda d: d['name']):
+        #     zone_name = zone['name']
+        #     zone_id = zone['id']
+        #     for wlan in self.get_data('rkszones/{}/wlans'.format(zone_id))['list']:
+        #         ssid = wlan['ssid']
+        #         wlan_id = wlan['id']
+        #         for ssid in self.get_data('rkszones/{}/wlans/{}'.format(zone_id, wlan_id)):
+        #             print(ssid)
+
+        for wlan in sorted(self.get_data('query/wlan')['list'], key=lambda d: d['name']):
+            for s in list(wlan_metrics.keys()):
+                if wlan.get(s) is not None:
+                    wlan_metrics[s].add_metric([str(wlan['zoneName']), str(wlan['name']), wlan['ssid']], wlan.get(s))
+                # Return 0 for metrics with values of None
+                else:
+                    wlan_metrics[s].add_metric([str(wlan['zoneName']), str(wlan['name']), wlan['ssid']], 0)
+
+        for m in wlan_metrics.values():
             yield m
 
 
