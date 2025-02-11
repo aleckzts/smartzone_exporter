@@ -1,6 +1,7 @@
 # requests used to fetch API data
 import requests
 import os
+import sys
 
 # Allow for silencing insecure warnings from requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -17,6 +18,8 @@ import argparse
 # Prometheus modules for HTTP server & metrics
 from prometheus_client import start_http_server, Summary
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, InfoMetricFamily, REGISTRY
+
+import signal
 
 # Compatible Ruckus API version
 apiVersion = 'v11_1'
@@ -324,24 +327,25 @@ def parse_args():
     # Now that we've added the arguments, parse them and return the values as output
     return parser.parse_args()
 
-def main():
-    try:
-        args = parse_args()
-        port = int(args.port)
-        user = os.environ['API_USER']
-        password = os.environ['API_PASSWORD']
-        REGISTRY.register(SmartZoneCollector(args.target, user, password, args.insecure))
-        # Start HTTP server on specified port
-        start_http_server(port)
-        if args.insecure == False:
-             print('WARNING: Connection to {} may not be secure.'.format(args.target))
-        print("Polling {}. Listening on ::{}".format(args.target, port))
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print(" Keyboard interrupt, exiting...")
-        exit(0)
+def terminate(signal,frame):
+    print("Exiting...")
+    sys.exit(0)
 
+def main():
+    signal.signal(signal.SIGTERM, terminate)
+
+    args = parse_args()
+    port = int(args.port)
+    user = os.environ['API_USER']
+    password = os.environ['API_PASSWORD']
+    REGISTRY.register(SmartZoneCollector(args.target, user, password, args.insecure))
+    # Start HTTP server on specified port
+    start_http_server(port)
+    if args.insecure == False:
+            print('WARNING: Connection to {} may not be secure.'.format(args.target))
+    print("Polling {}. Listening on ::{}".format(args.target, port))
+    while True:
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()
