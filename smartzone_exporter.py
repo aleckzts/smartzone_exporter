@@ -40,6 +40,8 @@ class SmartZoneCollector():
         self._headers = {'Content-Type': 'application/json;charset=UTF-8'}
         self._service_ticket = ''
 
+        self._wlan_details = os.environ['WLAN_DETAILS'].split(',')
+
         # With the exception of uptime, all of these metrics are strings
         # Following the example of node_exporter, we'll set these string metrics with a default value of 1
 
@@ -190,6 +192,17 @@ class SmartZoneCollector():
                 labels=["zone","name","ssid"]),
         }
 
+        details_metrics = {
+            'passphrase':
+                GaugeMetricFamily('smartzone_wlan_details_passphrase',
+                'WLAN details Passphrase',
+                labels=["zone","name","ssid","passphrase"]),                
+            'schedule':
+                GaugeMetricFamily('smartzone_wlan_details_schedule',
+                'WLAN Details Schedule',
+                labels=["zone","name","ssid","schedule_name","sun","mon","tue","wed","thu","fri","sat"]),
+        }
+
         self.get_session()
 
         # Get SmartZone controller metrics
@@ -253,21 +266,6 @@ class SmartZoneCollector():
         for m in ap_metrics.values():
             yield m
 
-        # for zone in sorted(self.get_data('rkszones')['list'], key=lambda d: d['name']):
-        #     zone_name = zone['name']
-        #     zone_id = zone['id']
-        #     for wlan in self.get_data('rkszones/{}/wlans'.format(zone_id))['list']:
-        #         ssid = wlan['ssid']
-        #         wlan_id = wlan['id']
-        #         for ssid in self.get_data('rkszones/{}/wlans/{}'.format(zone_id, wlan_id)):
-        #             print(ssid)
-
-        #for zone in sorted(self.get_data('rkszones')['list'], key=lambda d: d['name']):
-        #    zone_id = zone['id']
-        #    for wlan in sorted(self.get_data('rkszones/{}/wlans'.format(zone_id))['list'], key=lambda d: d['name']):
-        #        wlan_id = wlan['id']
-        #        print(self.get_data('rkszones/{}/wlans/{}'.format(zone_id, wlan_id)))
-
         for wlan in sorted(self.get_data('query/wlan')['list'], key=lambda d: d['name']):
             for s in list(wlan_metrics.keys()):
                 if wlan.get(s) is not None:
@@ -278,6 +276,33 @@ class SmartZoneCollector():
 
         for m in wlan_metrics.values():
             yield m
+
+        for zone in sorted(self.get_data('rkszones')['list'], key=lambda d: d['name']):
+            zone_name = zone['name']
+            zone_id = zone['id']
+            for wlan in sorted(self.get_data('rkszones/{}/wlans'.format(zone_id))['list'], key=lambda d: d['name']):
+                if wlan['ssid'] in self._wlan_details:
+                    wlan_id = wlan['id']
+                    wlan_data = self.get_data('rkszones/{}/wlans/{}'.format(zone_id, wlan_id))
+                    if wlan_data['encryption']['method'] == 'WPA2':
+                        details_metrics['passphrase'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], wlan_data['encryption']['passphrase']], 1)
+                    if wlan_data['schedule']['type'] == 'AlwaysOff':
+                        details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], "AlwaysOff", "", "", "", "", "", "", "" ], 0)
+                    elif wlan_data['schedule']['id'] != 'None':
+                        schedule = self.get_data('rkszones/{}/wlanSchedulers/{}'.format(zone_id, wlan_data['schedule']['id']))
+                        details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], schedule['name'],
+                            ','.join(schedule["sun"]),
+                            ','.join(schedule["mon"]),
+                            ','.join(schedule["tue"]),
+                            ','.join(schedule["wed"]),
+                            ','.join(schedule["thu"]),
+                            ','.join(schedule["fri"]),
+                            ','.join(schedule["sat"]) 
+                            ], 0)
+
+        for m in details_metrics.values():
+            yield m
+
 
 
 # Function to parse command line arguments and pass them to the collector

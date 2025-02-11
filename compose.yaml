@@ -9,4 +9,5 @@ services:
       - VSZ_TARGET=${VSZ_TARGET}
       - API_USER=${API_USER}
       - API_PASSWORD=${API_PASSWORD}
+      - WLAN_DETAILS=${WLAN_DETAILS}
       - EXTRA_PARAM=--insecure
