@@ -16,7 +16,7 @@ import argparse
 
 # Prometheus modules for HTTP server & metrics
 from prometheus_client import start_http_server, Summary
-from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
+from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, InfoMetricFamily, REGISTRY
 
 # Compatible Ruckus API version
 apiVersion = 'v11_1'
@@ -83,6 +83,8 @@ class SmartZoneCollector():
 
 
     def collect(self):
+
+        yield InfoMetricFamily('api_compatibility', 'Compatibility with exporter and controller', value={'compatible': self._compatible})
 
         controller_metrics = {
             'model':
@@ -170,8 +172,12 @@ class SmartZoneCollector():
             'status':
                 GaugeMetricFamily('smartzone_ap_status',
                 'AP status',
-                labels=["zone","ap_group","mac","name","status","lat","long"])
-                }
+                labels=["zone","ap_group","mac","name","status","lat","long"]),
+            'model':
+                GaugeMetricFamily('smartzone_ap_model',
+                'AP model',
+                labels=["zone","ap_group","mac","name","model","lat","long"]),
+        }
 
         wlan_metrics = {
             'alerts':
@@ -235,6 +241,8 @@ class SmartZoneCollector():
                             value = 1
                         # Wrap the zone and group names in str() to avoid issues with None values at export time
                         ap_metrics[s].add_metric([str(ap['zoneName']), str(ap['apGroupName']), ap['apMac'], ap['deviceName'], n, lat, long], value)
+                elif s == 'model':
+                    ap_metrics[s].add_metric([str(ap['zoneName']), str(ap['apGroupName']), ap['apMac'], ap['deviceName'], ap['model'], lat, long], 1)
                 else:
                     if ap.get(s) is not None:
                         ap_metrics[s].add_metric([str(ap['zoneName']), str(ap['apGroupName']), ap['apMac'], ap['deviceName'], lat, long], ap.get(s))
@@ -253,6 +261,12 @@ class SmartZoneCollector():
         #         wlan_id = wlan['id']
         #         for ssid in self.get_data('rkszones/{}/wlans/{}'.format(zone_id, wlan_id)):
         #             print(ssid)
+
+        #for zone in sorted(self.get_data('rkszones')['list'], key=lambda d: d['name']):
+        #    zone_id = zone['id']
+        #    for wlan in sorted(self.get_data('rkszones/{}/wlans'.format(zone_id))['list'], key=lambda d: d['name']):
+        #        wlan_id = wlan['id']
+        #        print(self.get_data('rkszones/{}/wlans/{}'.format(zone_id, wlan_id)))
 
         for wlan in sorted(self.get_data('query/wlan')['list'], key=lambda d: d['name']):
             for s in list(wlan_metrics.keys()):
