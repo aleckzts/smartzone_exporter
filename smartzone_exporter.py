@@ -310,21 +310,6 @@ class SmartZoneCollector():
                             ','.join(schedule["sat"]) if len(schedule["sat"]) > 0 else "-" 
                             ], 0)
 
-smartzone_exporter-1  | {
-    'id': '61578d81-1231-11ef-80b9-96b2b184f195',
-     'zoneId': '88266afc-1f7b-4267-a550-fefde9ed8eb6',
-     'name': 'Evento_FEV_2025',
-     'description': '',
-     'sun': [],
-     'mon': ['08:00-23:15'],
-     'tue': [],
-     'wed': [],
-     'thu': [],
-     'fri': [],
-     'sat': []
-     }
-
-
         for m in details_metrics.values():
             yield m
 
