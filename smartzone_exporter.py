@@ -200,6 +200,10 @@ class SmartZoneCollector():
                 GaugeMetricFamily('smartzone_wlan_details_passphrase',
                 'WLAN details Passphrase',
                 labels=["zone","name","ssid","passphrase"]),                
+            'qrcode':
+                GaugeMetricFamily('smartzone_wlan_details_qrcode',
+                'WLAN details QRCode',
+                labels=["zone","name","ssid","qrcode"]),                
             'schedule':
                 GaugeMetricFamily('smartzone_wlan_details_schedule',
                 'WLAN Details Schedule',
@@ -289,19 +293,37 @@ class SmartZoneCollector():
                     wlan_data = self.get_data('rkszones/{}/wlans/{}'.format(zone_id, wlan_id))
                     if wlan_data['encryption']['method'] == 'WPA2':
                         details_metrics['passphrase'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], wlan_data['encryption']['passphrase']], 1)
+                        details_metrics['qrcode'].add_metric([zone_name, str(wlan['name']), wlan['ssid'],
+                            'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=WIFI:T:WPA;S:{};P:{}};;'.format(wlan['ssid'], wlan_data['encryption']['passphrase'])
+                            ], 1)
                     if wlan_data['schedule']['type'] == 'AlwaysOff':
-                        details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], "AlwaysOff", "", "", "", "", "", "", "" ], 0)
+                        details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], "AlwaysOff", "-", "-", "-", "-", "-", "-", "-" ], 0)
                     elif wlan_data['schedule']['id'] != 'None':
                         schedule = self.get_data('rkszones/{}/wlanSchedulers/{}'.format(zone_id, wlan_data['schedule']['id']))
                         details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], schedule['name'],
-                            ','.join(schedule["sun"]),
-                            ','.join(schedule["mon"]),
-                            ','.join(schedule["tue"]),
-                            ','.join(schedule["wed"]),
-                            ','.join(schedule["thu"]),
-                            ','.join(schedule["fri"]),
-                            ','.join(schedule["sat"]) 
+                            ','.join(schedule["sun"]) if len(schedule["sun"]) > 0 else "-",
+                            ','.join(schedule["mon"]) if len(schedule["mon"]) > 0 else "-",
+                            ','.join(schedule["tue"]) if len(schedule["tue"]) > 0 else "-",
+                            ','.join(schedule["wed"]) if len(schedule["wed"]) > 0 else "-",
+                            ','.join(schedule["thu"]) if len(schedule["thu"]) > 0 else "-",
+                            ','.join(schedule["fri"]) if len(schedule["fri"]) > 0 else "-",
+                            ','.join(schedule["sat"]) if len(schedule["sat"]) > 0 else "-" 
                             ], 0)
+
+smartzone_exporter-1  | {
+    'id': '61578d81-1231-11ef-80b9-96b2b184f195',
+     'zoneId': '88266afc-1f7b-4267-a550-fefde9ed8eb6',
+     'name': 'Evento_FEV_2025',
+     'description': '',
+     'sun': [],
+     'mon': ['08:00-23:15'],
+     'tue': [],
+     'wed': [],
+     'thu': [],
+     'fri': [],
+     'sat': []
+     }
+
 
         for m in details_metrics.values():
             yield m
