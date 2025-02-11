@@ -294,7 +294,7 @@ class SmartZoneCollector():
                     if wlan_data['encryption']['method'] == 'WPA2':
                         details_metrics['passphrase'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], wlan_data['encryption']['passphrase']], 1)
                         details_metrics['qrcode'].add_metric([zone_name, str(wlan['name']), wlan['ssid'],
-                            'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=WIFI:T:WPA;S:{};P:{}};;'.format(wlan['ssid'], wlan_data['encryption']['passphrase'])
+                            'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=WIFI:T:WPA;S:{};P:{};;'.format(wlan['ssid'], wlan_data['encryption']['passphrase'])
                             ], 1)
                     if wlan_data['schedule']['type'] == 'AlwaysOff':
                         details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], "AlwaysOff", "-", "-", "-", "-", "-", "-", "-" ], 0)
