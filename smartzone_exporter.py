@@ -84,7 +84,7 @@ class SmartZoneCollector():
 
     def collect(self):
 
-        yield InfoMetricFamily('api_compatibility', 'Compatibility with exporter and controller', value={'compatible': self._compatible})
+        yield InfoMetricFamily('api_compatibility', 'Compatibility with exporter and controller', value={'compatible': str(self._compatible)})
 
         controller_metrics = {
             'model':
