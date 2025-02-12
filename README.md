@@ -17,28 +17,24 @@ The following metrics are currently supported:
 
 Additional metrics may be added over time.
 
+## Env file
+
+
 ## Usage
-```
-usage: smartzone_exporter.py [-h] -u USER -p PASSWORD -t TARGET [--insecure]
-                             [--port PORT]
+Create an .env file with the target URL, username and password. You can add a list with SSIDs that will be included with more details (passphrase and schedule)
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --insecure            Allow insecure SSL connections to Smartzone
-  --port PORT           Port on which to expose metrics and web interface
-                        (default=9345)
+```
+VSZ_TARGET="https://smartzone.example.com:8443/"
+API_USER="myusername"
+API_PASSWORD="mypass"
+WLAN_DETAILS=SSID1,SSID2
+```
 
-required named arguments:
-  -u USER, --user USER  SmartZone API user
-  -p PASSWORD, --password PASSWORD
-                        SmartZone API password
-  -t TARGET, --target TARGET
-                        Target URL and port to access SmartZone, e.g.
-                        https://smartzone.example.com:8443
+Build the image and run
+
 ```
-### Example
-```
-python smartzone_exporter.py -u apouser -p apipass -t https://smartzone.example.com:8443
+docker compose build
+docker compose up -d
 ```
 
 ## Requirements
