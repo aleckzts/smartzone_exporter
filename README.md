@@ -17,9 +17,6 @@ The following metrics are currently supported:
 
 Additional metrics may be added over time.
 
-## Env file
-
-
 ## Usage
 Create an .env file with the target URL, username and password. You can add a list with SSIDs that will be included with more details (passphrase and schedule)
 
