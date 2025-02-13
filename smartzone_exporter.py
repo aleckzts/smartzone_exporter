@@ -297,8 +297,8 @@ class SmartZoneCollector():
                         details_metrics['qrcode'].add_metric([zone_name, str(wlan['name']), wlan['ssid'],
                             'https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=WIFI:T:WPA;S:{};P:{};;'.format(wlan['ssid'], urllib.parse.quote_plus(wlan_data['encryption']['passphrase']))
                             ], 1)
-                    if wlan_data['schedule']['type'] == 'AlwaysOff':
-                        details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], "AlwaysOff", "-", "-", "-", "-", "-", "-", "-" ], 0)
+                    if wlan_data['schedule']['type'] in ['AlwaysOff', 'AlwaysOn']:
+                        details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], str(wlan_data['schedule']['type']), "-", "-", "-", "-", "-", "-", "-" ], 0)
                     elif wlan_data['schedule']['id'] != 'None':
                         schedule = self.get_data('rkszones/{}/wlanSchedulers/{}'.format(zone_id, wlan_data['schedule']['id']))
                         details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], schedule['name'],
