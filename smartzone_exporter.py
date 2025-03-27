@@ -276,40 +276,64 @@ class SmartZoneCollector():
 
         for wlan in sorted(self.get_data('query/wlan')['list'], key=lambda d: d['name']):
             for s in list(wlan_metrics.keys()):
-                if wlan.get(s) is not None:
+                if wlan.get(s) in [True, False]:
+                    wlan_metrics[s].add_metric([str(wlan['zoneName']), str(wlan['name']), wlan['ssid']], +wlan.get(s))
+                elif wlan.get(s) is not None:
                     wlan_metrics[s].add_metric([str(wlan['zoneName']), str(wlan['name']), wlan['ssid']], wlan.get(s))
                 # Return 0 for metrics with values of None
                 else:
                     wlan_metrics[s].add_metric([str(wlan['zoneName']), str(wlan['name']), wlan['ssid']], 0)
+            if wlan['ssid'] in self._wlan_details:
+                wlan_data = self.get_data('rkszones/{}/wlans/{}'.format(wlan['zoneId'], wlan['wlanId']))
+                if wlan_data['encryption']['method'] == 'WPA2':
+                    details_metrics['passphrase'].add_metric([str(wlan['zoneName']), str(wlan['name']), wlan['ssid'], wlan_data['encryption']['passphrase']], 1)
+                    details_metrics['qrcode'].add_metric([str(wlan['zoneName']), str(wlan['name']), wlan['ssid'],
+                        'https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=WIFI:T:WPA;S:{};P:{};;'.format(wlan['ssid'], urllib.parse.quote_plus(wlan_data['encryption']['passphrase']))
+                        ], 1)
+                else:
+                    details_metrics['passphrase'].add_metric(str(wlan['zoneName']), str(wlan['name']), wlan['ssid'], "-", 0)
+                if wlan_data['schedule']['type'] in ['AlwaysOff', 'AlwaysOn']:
+                    details_metrics['schedule'].add_metric([str(wlan['zoneName']), str(wlan['name']), wlan['ssid'], str(wlan_data['schedule']['type']), "-", "-", "-", "-", "-", "-", "-" ], 0)
+                elif wlan_data['schedule']['id'] != 'None':
+                    schedule = self.get_data('rkszones/{}/wlanSchedulers/{}'.format(wlan['zoneId'], wlan_data['schedule']['id']))
+                    details_metrics['schedule'].add_metric([str(wlan['zoneName']), str(wlan['name']), wlan['ssid'], schedule['name'],
+                        ','.join(schedule["sun"]) if len(schedule["sun"]) > 0 else "-",
+                        ','.join(schedule["mon"]) if len(schedule["mon"]) > 0 else "-",
+                        ','.join(schedule["tue"]) if len(schedule["tue"]) > 0 else "-",
+                        ','.join(schedule["wed"]) if len(schedule["wed"]) > 0 else "-",
+                        ','.join(schedule["thu"]) if len(schedule["thu"]) > 0 else "-",
+                        ','.join(schedule["fri"]) if len(schedule["fri"]) > 0 else "-",
+                        ','.join(schedule["sat"]) if len(schedule["sat"]) > 0 else "-"
+                        ], 0)
 
         for m in wlan_metrics.values():
             yield m
 
-        for zone in sorted(self.get_data('rkszones')['list'], key=lambda d: d['name']):
-            zone_name = zone['name']
-            zone_id = zone['id']
-            for wlan in sorted(self.get_data('rkszones/{}/wlans'.format(zone_id))['list'], key=lambda d: d['name']):
-                if wlan['ssid'] in self._wlan_details:
-                    wlan_id = wlan['id']
-                    wlan_data = self.get_data('rkszones/{}/wlans/{}'.format(zone_id, wlan_id))
-                    if wlan_data['encryption']['method'] == 'WPA2':
-                        details_metrics['passphrase'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], wlan_data['encryption']['passphrase']], 1)
-                        details_metrics['qrcode'].add_metric([zone_name, str(wlan['name']), wlan['ssid'],
-                            'https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=WIFI:T:WPA;S:{};P:{};;'.format(wlan['ssid'], urllib.parse.quote_plus(wlan_data['encryption']['passphrase']))
-                            ], 1)
-                    if wlan_data['schedule']['type'] in ['AlwaysOff', 'AlwaysOn']:
-                        details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], str(wlan_data['schedule']['type']), "-", "-", "-", "-", "-", "-", "-" ], 0)
-                    elif wlan_data['schedule']['id'] != 'None':
-                        schedule = self.get_data('rkszones/{}/wlanSchedulers/{}'.format(zone_id, wlan_data['schedule']['id']))
-                        details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], schedule['name'],
-                            ','.join(schedule["sun"]) if len(schedule["sun"]) > 0 else "-",
-                            ','.join(schedule["mon"]) if len(schedule["mon"]) > 0 else "-",
-                            ','.join(schedule["tue"]) if len(schedule["tue"]) > 0 else "-",
-                            ','.join(schedule["wed"]) if len(schedule["wed"]) > 0 else "-",
-                            ','.join(schedule["thu"]) if len(schedule["thu"]) > 0 else "-",
-                            ','.join(schedule["fri"]) if len(schedule["fri"]) > 0 else "-",
-                            ','.join(schedule["sat"]) if len(schedule["sat"]) > 0 else "-" 
-                            ], 0)
+#        for zone in sorted(self.get_data('rkszones')['list'], key=lambda d: d['name']):
+#            zone_name = zone['name']
+#            zone_id = zone['id']
+#            for wlan in sorted(self.get_data('rkszones/{}/wlans'.format(zone_id))['list'], key=lambda d: d['name']):
+#                if wlan['ssid'] in self._wlan_details:
+#                    wlan_id = wlan['id']
+#                    wlan_data = self.get_data('rkszones/{}/wlans/{}'.format(zone_id, wlan_id))
+#                    if wlan_data['encryption']['method'] == 'WPA2':
+#                        details_metrics['passphrase'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], wlan_data['encryption']['passphrase']], 1)
+#                        details_metrics['qrcode'].add_metric([zone_name, str(wlan['name']), wlan['ssid'],
+#                            'https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=WIFI:T:WPA;S:{};P:{};;'.format(wlan['ssid'], urllib.parse.quote_plus(wlan_data['encryption']['passphrase']))
+#                            ], 1)
+#                    if wlan_data['schedule']['type'] in ['AlwaysOff', 'AlwaysOn']:
+#                        details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], str(wlan_data['schedule']['type']), "-", "-", "-", "-", "-", "-", "-" ], 0)
+#                    elif wlan_data['schedule']['id'] != 'None':
+#                        schedule = self.get_data('rkszones/{}/wlanSchedulers/{}'.format(zone_id, wlan_data['schedule']['id']))
+#                        details_metrics['schedule'].add_metric([zone_name, str(wlan['name']), wlan['ssid'], schedule['name'],
+#                            ','.join(schedule["sun"]) if len(schedule["sun"]) > 0 else "-",
+#                            ','.join(schedule["mon"]) if len(schedule["mon"]) > 0 else "-",
+#                            ','.join(schedule["tue"]) if len(schedule["tue"]) > 0 else "-",
+#                            ','.join(schedule["wed"]) if len(schedule["wed"]) > 0 else "-",
+#                            ','.join(schedule["thu"]) if len(schedule["thu"]) > 0 else "-",
+#                            ','.join(schedule["fri"]) if len(schedule["fri"]) > 0 else "-",
+#                            ','.join(schedule["sat"]) if len(schedule["sat"]) > 0 else "-" 
+#                            ], 0)
 
         for m in details_metrics.values():
             yield m
