@@ -9,7 +9,7 @@ COPY requirements.txt /app/requirements.txt
 
 RUN pip install -r requirements.txt
 
-COPY smartzone_exporter.py /app/smartzone_exporter.py
+COPY *.py .
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
