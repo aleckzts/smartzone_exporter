@@ -45,5 +45,17 @@ This exporter has been tested on the following versions:
 ```
 git clone https://github.com/aleckzts/smartzone_exporter.git
 cd smartzone_exporter
-pipenv install
+docker compose build
+docker compose up -d
+```
+
+
+## Prometheus
+```
+  - job_name: ruckus_wifi
+    scrape_interval: 30s
+    scrape_timeout: 25s
+    static_configs:
+      - targets: ["localhost:9345"]
+    metrics_path: /metrics
 ```
