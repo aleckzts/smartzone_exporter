@@ -30,7 +30,12 @@ def get_data(target, path, service_ticket, insecure=False, payload=None):
 
 def compare_dicts(baseline, other, prefix=''):
     diffs = []
-    ignored_keys = {'id', 'zoneId', 'wlanId', 'createdTime', 'lastModifiedTime', 'schedule.id', 'firewallProfileId', 'portalServiceProfile.id', 'scheduler_config.id', 'scheduler_config.zoneId', 'schedule.name', 'portalServiceProfile.name', 'portal_config.id', 'portal_config.zoneId'}
+    ignored_keys = {
+        'id', 'zoneId', 'wlanId', 'createdTime', 'lastModifiedTime', 'schedule.id',
+        'firewallProfileId', 'portalServiceProfile.id', 'scheduler_config.id',
+        'scheduler_config.zoneId', 'schedule.name', 'portalServiceProfile.name',
+        'portal_config.id', 'portal_config.zoneId'
+    }
 
     for key in baseline:
         path = f"{prefix}.{key}" if prefix else key
@@ -40,6 +45,16 @@ def compare_dicts(baseline, other, prefix=''):
             diffs.append(f"{path} - só existe no baseline")
         elif isinstance(baseline[key], dict) and isinstance(other[key], dict):
             diffs.extend(compare_dicts(baseline[key], other[key], path))
+        elif isinstance(baseline[key], list) and isinstance(other[key], list):
+            set1 = set(json.dumps(item, sort_keys=True) for item in baseline[key])
+            set2 = set(json.dumps(item, sort_keys=True) for item in other[key])
+            only_in_1 = set1 - set2
+            only_in_2 = set2 - set1
+            if only_in_1 or only_in_2:
+                if only_in_1:
+                    diffs.append(f"{path} - apenas no baseline: {[json.loads(x) for x in only_in_1]}")
+                if only_in_2:
+                    diffs.append(f"{path} - apenas no comparado: {[json.loads(x) for x in only_in_2]}")
         elif baseline[key] != other[key]:
             diffs.append(f"{path} - '{baseline[key]}' !== '{other[key]}'")
 
