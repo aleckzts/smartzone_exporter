@@ -200,11 +200,7 @@ class SmartZoneCollector():
             'passphrase':
                 GaugeMetricFamily('smartzone_wlan_details_passphrase',
                 'WLAN details Passphrase',
-                labels=["zone","name","ssid","passphrase"]),                
-            'qrcode':
-                GaugeMetricFamily('smartzone_wlan_details_qrcode',
-                'WLAN details QRCode',
-                labels=["zone","name","ssid","qrcode"]),                
+                labels=["zone","name","ssid","passphrase","qrcode"]),
             'schedule':
                 GaugeMetricFamily('smartzone_wlan_details_schedule',
                 'WLAN Details Schedule',
@@ -286,10 +282,9 @@ class SmartZoneCollector():
             if wlan['ssid'] in self._wlan_details:
                 wlan_data = self.get_data('rkszones/{}/wlans/{}'.format(wlan['zoneId'], wlan['wlanId']))
                 if wlan_data['encryption']['method'] == 'WPA2':
-                    details_metrics['passphrase'].add_metric([str(wlan['zoneName']), str(wlan['name']), wlan['ssid'], wlan_data['encryption']['passphrase']], 1)
-                    details_metrics['qrcode'].add_metric([str(wlan['zoneName']), str(wlan['name']), wlan['ssid'],
+                    details_metrics['passphrase'].add_metric([str(wlan['zoneName']), str(wlan['name']), wlan['ssid'], wlan_data['encryption']['passphrase'],
                         'https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=WIFI:T:WPA;S:{};P:{};;'.format(wlan['ssid'], urllib.parse.quote_plus(wlan_data['encryption']['passphrase']))
-                        ], 1)
+                      ], 1)
                 else:
                     details_metrics['passphrase'].add_metric(str(wlan['zoneName']), str(wlan['name']), wlan['ssid'], "-", 0)
                 if wlan_data['schedule']['type'] in ['AlwaysOff', 'AlwaysOn']:
