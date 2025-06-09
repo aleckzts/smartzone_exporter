@@ -30,7 +30,7 @@ def get_data(target, path, service_ticket, insecure=False, payload=None):
 
 def compare_dicts(baseline, other, prefix=''):
     diffs = []
-    ignored_keys = {'id', 'zoneId', 'wlanId', 'createdTime', 'lastModifiedTime', 'schedule.id', 'firewallProfileId', 'portalServiceProfile.id'}
+    ignored_keys = {'id', 'zoneId', 'wlanId', 'createdTime', 'lastModifiedTime', 'schedule.id', 'firewallProfileId', 'portalServiceProfile.id', 'scheduler_config.id', 'scheduler_config.zoneId', 'schedule.name', 'portalServiceProfile.name', 'portal_config.id', 'portal_config.zoneId'}
 
     for key in baseline:
         path = f"{prefix}.{key}" if prefix else key
@@ -101,8 +101,16 @@ def main():
             diff = f'{zones[1]}/{ssids[1]}'
             print(f"Buscando configuração de '{baseline}'...")
             config1 = get_data(target, f'rkszones/{zones_id[0]}/wlans/{wlans_id[0]}', service_ticket, insecure)
+            if "id" in config1["schedule"] and config1["schedule"]["id"] != None:
+                config1['scheduler_config'] = get_data(target, f'rkszones/{zones_id[0]}/wlanSchedulers/{config1["schedule"]["id"]}', service_ticket, insecure)
+            if config1["portalServiceProfile"] != None:
+                config1['portal_config'] = get_data(target, f'rkszones/{zones_id[0]}/portals/hotspot/{config1["portalServiceProfile"]["id"]}', service_ticket, insecure)
             print(f"Buscando configuração de '{diff}'...")
             config2 = get_data(target, f'rkszones/{zones_id[1]}/wlans/{wlans_id[1]}', service_ticket, insecure)
+            if "id" in config2["schedule"] and config2["schedule"]["id"] != None:
+                config2['scheduler_config'] = get_data(target, f'rkszones/{zones_id[1]}/wlanSchedulers/{config2["schedule"]["id"]}', service_ticket, insecure)
+            if config2["portalServiceProfile"] != None:
+                config2['portal_config'] = get_data(target, f'rkszones/{zones_id[1]}/portals/hotspot/{config2["portalServiceProfile"]["id"]}', service_ticket, insecure)
         else:
             baseline = f'{zones[0]}'
             diff = f'{zones[1]}'
