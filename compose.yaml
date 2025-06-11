@@ -2,6 +2,7 @@ services:
   smartzone_exporter:
     build: .
     image: smartzone_exporter
+    container_name: smartzone_exporter
     ports:
       - 9345:9345
     environment:
